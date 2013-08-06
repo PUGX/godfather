@@ -25,15 +25,14 @@ Strategy lets the algorithm vary independently from clients that use it.
 
 ## Installation
 
-`composer require liuggio/godfather dev-master`
+`composer require pugx/godfather dev-master`
 
 ## A simple use case
 
 Imagine that you want to add a product into a cartitem with some options.
 The problem is that you have multiple products, and each product has a different policy/behaviour.
 
-You could find the code of this use case in: [tests/Godfather/Test/FunctionalTest.php](https://github.com/liuggio/godfather/blob/master/tests/Godfather/Test/FunctionalTest.php)                                                                                                                                                                                                                      tests/GodFather/Test/FunctionalTest.php
-
+You could find the code of this use case in: tests/PUGX/Godfather/Test/FunctionalTest.php
 **before the cure:**
 
 ```php
@@ -55,13 +54,13 @@ class Cart
 
 ```php
 // Step1. init
-$godfather = new Godfather();
+$godfather = new PUGX\Godfather();
 //                   |-context name---Interface to respect (optional)----Fallback Strategy-(optional)-|
-$godfather->addContext('cart', 'Godfather\Test\Fixture\CartItemInterface', new StandardCartItem());
+$godfather->addContext('cart', 'PUGX\Godfather\Test\Fixture\CartItemInterface', new StandardCartItem());
 // start adding billion of strategies
 //                   |-context name---------------context key----------------Strategy-------|
-$godfather->addStrategy('cart', 'Godfather\Test\Fixture\Entity\Ticket', new TicketCartItem());
-$godfather->addStrategy('cart', 'Godfather\Test\Fixture\Entity\Socket', new SocketCartItem());
+$godfather->addStrategy('cart', 'PUGX\Godfather\Test\Fixture\Entity\Ticket', new TicketCartItem());
+$godfather->addStrategy('cart', 'PUGX\Godfather\Test\Fixture\Entity\Socket', new SocketCartItem());
 
 // Step2. usage
 class Cart
@@ -81,7 +80,7 @@ class Cart
 
 You want to call the correct manager, starting from the entity:
 ```php
-$godfather = new Godfather();
+$godfather = new PUGX\Godfather();
 // the context is created if is not found.
 $godfather->addStrategy('manager', 'Product\ShoeProduct', new ShoeProductManager());
 $godfather->addStrategy('manager', 'Product\PillowProduct', new PillowProductManager());
@@ -99,7 +98,7 @@ class AppKernel extends Kernel
     {
         $bundles = array(
             ...
-            new Godfather\GodfatherBundle\GodfatherBundle(),
+            new PUGX\GodfatherBundle\GodfatherBundle(),
 ```
 Modify the `app/config/config.yml` only if you need:
 ```yml
@@ -147,7 +146,7 @@ make sure that they are still passing and if you add functionality please
 take a look at the coverage as well it should be pretty high :)
 
 ```bash
-composer create-project liuggio/godfather --dev -s dev
+composer create-project pugx/godfather --dev -s dev
 cd godfather
 bin/phpunit
 ```

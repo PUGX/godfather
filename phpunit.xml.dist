@@ -14,14 +14,14 @@
 
     <testsuites>
         <testsuite name="Godfather Test Suite">
-            <directory>./tests/Godfather/</directory>
-            <directory>./sf2-bundle/Godfather/</directory>
+            <directory>./tests/PUGX/Godfather/</directory>
+            <directory>./sf2-bundle/PUGX/</directory>
         </testsuite>
     </testsuites>
 
     <filter>
         <whitelist>
-            <directory suffix=".php">./lib/Godfather/</directory>
+            <directory suffix=".php">./lib/PUGX/</directory>
         </whitelist>
     </filter>
 </phpunit>

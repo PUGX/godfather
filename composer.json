@@ -1,7 +1,7 @@
 {
-    "name": "liuggio/godfather",
-    "description": "Strategy pattern component",
-    "keywords": ["Strategy Pattern"],
+    "name": "pugx/godfather",
+    "description": "Strategy pattern component as library and symfony2 bundle",
+    "keywords": ["Strategy Pattern", "library", "bundle"],
     "homepage": "http://github.com/liuggio/godfather",
     "type": "library",
     "license": "MIT",
@@ -19,7 +19,7 @@
         "symfony/framework-bundle": "2.*"
     },
     "autoload": {
-        "psr-0": { "Godfather": ["sf2-bundle", "lib"]  }
+        "psr-0": { "PUGX": ["sf2-bundle", "lib"]  }
     },
     "extra": {
         "branch-alias": {
