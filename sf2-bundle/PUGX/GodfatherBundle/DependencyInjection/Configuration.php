@@ -29,17 +29,24 @@ class Configuration implements ConfigurationInterface
     private function addContextSection(ArrayNodeDefinition $rootNode)
     {
         $rootNode
-            ->fixXmlConfig('context')
+            ->isRequired()
             ->canBeUnset()
-            ->children()
-                ->arrayNode('contexts')
-                    ->prototype('array')
-                        ->children()
-                            ->scalarNode('interface')->defaultNull()->end()
-                            ->scalarNode('fallback')->defaultNull()->end()
+            ->useAttributeAsKey('alias', false)
+            ->prototype('array')
+                ->fixXmlConfig('interface')
+                ->children()
+                    ->arrayNode('contexts')
+                        ->useAttributeAsKey('name', false)
+                        ->prototype('array')
+                            ->children()
+                                ->scalarNode('interface')->defaultNull()->end()
+                                ->scalarNode('fallback')->defaultNull()->end()
+                            ->end()
                         ->end()
                     ->end()
                 ->end()
             ->end();
+
+
     }
 }

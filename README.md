@@ -2,7 +2,13 @@
 
 | ![godfather](http://images.wikia.com/cybernations/images/archive/c/c9/20071008043557!Godfather_hand_black.png) | A small library for the strategy pattern in PHP, if you use Symfony2 you could easily integrate Godfather with the bundle.   |
 | ------- |-----|
-| 1. [The Strategy pattern](#the-strategy-pattern), 2. [Installation](#installation), 3. [Contribution](#contribution), 4. [Using the symfony2 bundle](#using-the-symfony2-bundle), 5. [Todo](#todo) |[![travis-ci](https://secure.travis-ci.org/PUGX/godfather.png)](http://travis-ci.org/PUGX/godfather) [![Latest Stable Version](https://poser.pugx.org/PUGX/godfather/v/stable.png)](https://packagist.org/packages/PUGX/godfather) [![Total Downloads](https://poser.pugx.org/PUGX/godfather/downloads.png)](https://packagist.org/packages/PUGX/godfather) |
+
+ 1. [The Strategy pattern](#the-strategy-pattern)
+ 2. [Installation](#installation)
+ 3. [Contribution](#contribution)
+ 4. [Install the symfony2 bundle](#using-the-symfony2-bundle)
+
+[![travis-ci](https://secure.travis-ci.org/PUGX/godfather.png)](http://travis-ci.org/PUGX/godfather) [![Latest Stable Version](https://poser.pugx.org/PUGX/godfather/v/stable.png)](https://packagist.org/packages/PUGX/godfather) [![Total Downloads](https://poser.pugx.org/PUGX/godfather/downloads.png)](https://packagist.org/packages/PUGX/godfather) [![Latest Unstable Version](https://poser.pugx.org/PUGX/godfather/v/unstable.png)](https://packagist.org/packages/PUGX/godfather)
 
 ------------------------------------------------------
 
@@ -90,6 +96,8 @@ $manager = $this->godfather->getManager($product);
 ```
 ## Using the Symfony2 Bundle
 
+### Install the Bundle
+
 Add the bundle in the `app/AppKernel.php`
 ```php
 class AppKernel extends Kernel
@@ -100,21 +108,27 @@ class AppKernel extends Kernel
             ...
             new PUGX\GodfatherBundle\GodfatherBundle(),
 ```
-Modify the `app/config/config.yml` only if you need:
+### Configure the `app/config/config.yml`  only if you need
+
 ```yml
 // add the below configuration only if you need to specify the fallback or the interface.
 godfather:
-    contexts:
-        manager:
-            fallback: @manager_standard   # need a reference to a service
-            interface: %manager.interface.class%
-        cart:
-			interface: %cart.interface.class%
+    default:
+        contexts:
+            manager:
+                fallback: manager.standard              # need a reference to a defined service
+                interface: %manager.interface.class%
+            cart:
+                interface: %cart.interface.class%
 ```
 
-Set your strategies:
+### Set your strategies:
+
 ```yml
 services:
+    manager.standard:
+        class: StandardProductManager
+
     manager.shoe:
         class: ShoeProductManager
         tags:
@@ -131,13 +145,57 @@ services:
             -  { name: godfather.strategy, context_name: 'payment', context_key: %payment.pillow.class% }
 ```
 
-then use it in the controller:
+### Use it in the controller:
+
 ```php
 $product = new \Product\ShoeProduct();
 $manager = $container->get('godfather')->getManager($product);
 // or $manager = $container->get('godfather')->getStrategy('manager', $product);
+$payment = $container->get('godfather')->getPayment($product);
 $manager->...
 ```
+
+### Advanced with multiple instances
+
+Instead of default you could configure your strategy in different godfather instances.
+
+```yml
+godfather:
+    death:
+        contexts:
+            manager:
+                interface: \ABInterface
+    life:
+        contexts:
+            manager:
+                interface: \ABInterface
+```
+
+the strategies:
+
+```yml
+services:
+    manager.entity_life:
+        class: EntityProductManager
+        arguments:    ['life']
+        tags:
+            -  { name: godfather.strategy, instance:'life', context_name: 'manager', context_key: %product.show.class% }
+
+      manager.entity_death:
+        class: EntityProductManager
+        arguments:    ['death']
+        tags:
+            -  { name: godfather.strategy, instance:'death', context_name: 'manager', context_key: %product.show.class% }
+```
+and then the code with multiple instances
+
+``` php
+
+$this->getContainer('godfather.life')->getManager($entity);
+$this->getContainer('godfather.death')->getManager($entity);
+```
+
+
 
 ## Contribution
 

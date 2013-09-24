@@ -4,6 +4,7 @@ namespace PUGX\GodfatherBundle\DependencyInjection;
 
 use Symfony\Component\DependencyInjection\ContainerBuilder;
 use Symfony\Component\Config\FileLocator;
+use Symfony\Component\DependencyInjection\Definition;
 use Symfony\Component\DependencyInjection\Reference;
 use Symfony\Component\HttpKernel\DependencyInjection\Extension;
 use Symfony\Component\DependencyInjection\Loader;
@@ -23,33 +24,84 @@ class GodfatherExtension extends Extension
         $configuration = new Configuration();
         $config = $this->processConfiguration($configuration, $configs);
 
-        $loader = new Loader\XmlFileLoader($container, new FileLocator(__DIR__.'/../Resources/config'));
+        $loader = new Loader\XmlFileLoader($container, new FileLocator(__DIR__ . '/../Resources/config'));
         $loader->load('services.xml');
 
-        foreach ($config['contexts']  as $name => $context) {
-            $this->addContext($name, $context, $container);
+        foreach ($config as $name => $instance) {
+            $this->addInstance($name, $instance, $container);
         }
     }
 
     /**
-     * add a Context.
+     * Add an instance of Strategies.
      *
-     * @param string           $name      The context name
-     * @param array            $context   A client configuration
+     * @param string $name The instance name
+     * @param array $parameters Array of parameters.
      * @param ContainerBuilder $container A ContainerBuilder instance
      */
-    protected function addContext($name, array $context, ContainerBuilder $container)
+    protected function addInstance($name, array $parameters, ContainerBuilder $container)
     {
-        $godfather = $container->getDefinition(
-            'godfather'
-        );
+        $instance = $this->getOrCreateDefinition($container, $name);
 
-        $contextInterface = isset($context['interface'])?$context['interface']:null;
+        $contexts = $parameters['contexts'];
+        foreach ($contexts as $name => $context) {
+            $this->addContext($instance, $name, $context, $container);
+        }
+    }
+
+    /**
+     * Add a Context.
+     *
+     * @param Definition $instance
+     * @param string $name
+     * @param array $context
+     * @param ContainerBuilder $container
+     */
+    protected function addContext(Definition $instance, $name, array $context, ContainerBuilder $container)
+    {
+        $contextInterface = isset($context['interface']) ? $context['interface'] : null;
         $fallback = null;
         if (isset($context['fallback'])) {
             $fallback = new Reference($context['fallback']);
         }
 
-        $godfather->addMethodCall('addContext', array($name, $contextInterface, $fallback));
+        $instance->addMethodCall('addContext', array($name, $contextInterface, $fallback));
+    }
+
+    /**
+     * Get or create the instance definition.
+     *
+     * @param ContainerBuilder $container
+     * @param string $name
+     * @return Definition
+     *
+     */
+    private function getOrCreateDefinition(ContainerBuilder $container, $name = 'default')
+    {
+        if ('default' == $name) {
+            $name = 'godfather';
+        } else {
+            $name = sprintf("godfather.%s", $name);
+        }
+
+        if (!$container->hasDefinition($name)) {
+            $definition = $this->createGodFatherDefinition();
+            $container->setDefinition($name, $definition);
+
+        } else {
+            $definition = $container->getDefinition($name);
+        }
+
+        return $definition;
+    }
+
+    /**
+     * Definition Factory
+     *
+     * @return Definition
+     */
+    private function createGodFatherDefinition()
+    {
+        return new Definition('%godfather.class%', array("%godfather.context.class%"));
     }
 }

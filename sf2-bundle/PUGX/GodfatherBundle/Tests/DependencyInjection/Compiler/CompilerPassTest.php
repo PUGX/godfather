@@ -3,6 +3,7 @@
 namespace PUGX\GodfatherBundle\Tests\DependencyInjection\Compiler;
 
 use PUGX\GodfatherBundle\DependencyInjection\Compiler\CompilerPass;
+use Symfony\Component\DependencyInjection\Definition;
 
 class CompilerPassTest extends \PHPUnit_Framework_TestCase
 {
@@ -10,7 +11,13 @@ class CompilerPassTest extends \PHPUnit_Framework_TestCase
     {
         $menuPass = new CompilerPass();
 
-        $this->assertNull($menuPass->process($this->getMock('Symfony\Component\DependencyInjection\ContainerBuilder')));
+        $containerBuilderMock = $this->getMock('Symfony\Component\DependencyInjection\ContainerBuilder');
+        $containerBuilderMock->expects($this->once())
+            ->method('findTaggedServiceIds')
+            ->with($this->equalTo('godfather.strategy'))
+            ->will($this->returnValue(array()));
+
+        $this->assertNull($menuPass->process($containerBuilderMock));
     }
 
     /**
@@ -19,9 +26,7 @@ class CompilerPassTest extends \PHPUnit_Framework_TestCase
     public function testProcessWithEmptyClass()
     {
         $containerBuilderMock = $this->getMock('Symfony\Component\DependencyInjection\ContainerBuilder');
-        $containerBuilderMock->expects($this->once())
-            ->method('hasDefinition')
-            ->will($this->returnValue(true));
+
         $containerBuilderMock->expects($this->once())
             ->method('findTaggedServiceIds')
             ->with($this->equalTo('godfather.strategy'))
@@ -47,7 +52,7 @@ class CompilerPassTest extends \PHPUnit_Framework_TestCase
         $containerBuilderMock->expects($this->once())
             ->method('findTaggedServiceIds')
             ->with($this->equalTo('godfather.strategy'))
-            ->will($this->returnValue(array('id' => array('tag1' => array( 'context_key'=>'key', 'context_name'=>'name')))));
+            ->will($this->returnValue(array('id' => array('tag1' => array('context_key' => 'key', 'context_name' => 'name')))));
         $containerBuilderMock->expects($this->once())
             ->method('getDefinition')
             ->with($this->equalTo('godfather'))
@@ -56,4 +61,28 @@ class CompilerPassTest extends \PHPUnit_Framework_TestCase
         $menuPass = new CompilerPass();
         $menuPass->process($containerBuilderMock);
     }
+
+    public function testProcessWithMultipleInstance()
+    {
+        $containerBuilderMock = $this->getMock('Symfony\Component\DependencyInjection\ContainerBuilder');
+        $containerBuilderMock->expects($this->once())
+            ->method('findTaggedServiceIds')
+            ->with($this->equalTo('godfather.strategy'))
+            ->will($this->returnValue(
+                array(
+                    'id2' => array('tag2' => array('instance' => 'instance2', 'context_key' => 'key', 'context_name' => 'name'))
+                )));
+
+        $containerBuilderMock->expects($this->once())
+            ->method('hasDefinition')
+            ->will($this->returnValue(false));
+
+        $containerBuilderMock->expects($this->any())
+            ->method('setDefinition')
+            ->with($this->equalTo('godfather.instance2'));
+
+        $menuPass = new CompilerPass();
+        $menuPass->process($containerBuilderMock);
+    }
+
 }
